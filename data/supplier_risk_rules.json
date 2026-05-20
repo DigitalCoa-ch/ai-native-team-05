@@ -1,0 +1,13 @@
+{
+  "baseCredibility": 80,
+  "penalties": {
+    "missingDocument": 7,
+    "mediumCountryRisk": 10,
+    "highCountryRisk": 25,
+    "mediumReviewRisk": 8,
+    "highReviewRisk": 20,
+    "unclearPaymentTerms": 10,
+    "unclearDeliveryTerms": 10
+  },
+  "humanReviewRequired": true
+}

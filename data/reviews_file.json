@@ -1,0 +1,17 @@
+[
+  {
+    "supplier": "NovaTextiles Ltd.",
+    "signals": ["late shipment complaints", "mixed communication reviews", "acceptable product quality"],
+    "reviewRisk": "Medium"
+  },
+  {
+    "supplier": "FastImport Co.",
+    "signals": ["very low prices", "limited online history", "unclear refund terms"],
+    "reviewRisk": "High"
+  },
+  {
+    "supplier": "BrightSource Manufacturing",
+    "signals": ["positive delivery history", "clear documentation", "stable communication"],
+    "reviewRisk": "Low"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "country": "Country A",
+    "risk": "Low Risk",
+    "notes": "Stable trade environment in mock dataset."
+  },
+  {
+    "country": "Country B",
+    "risk": "Medium Risk",
+    "notes": "Some delivery and compliance uncertainty in mock dataset."
+  },
+  {
+    "country": "Country C",
+    "risk": "High Risk",
+    "notes": "High geopolitical and sanctions uncertainty in mock dataset."
+  },
+  {
+    "country": "Vietnam",
+    "risk": "Medium Risk",
+    "notes": "Mock dataset indicates moderate logistics and documentation checks required."
+  },
+  {
+    "country": "China",
+    "risk": "Medium Risk",
+    "notes": "Mock dataset indicates need for stronger compliance and supplier verification."
+  },
+  {
+    "country": "India",
+    "risk": "Medium Risk",
+    "notes": "Mock dataset indicates documentation and logistics review recommended."
+  },
+  {
+    "country": "Turkey",
+    "risk": "Medium Risk",
+    "notes": "Mock dataset indicates currency and delivery-term review recommended."
+  },
+  {
+    "country": "Bangladesh",
+    "risk": "Medium Risk",
+    "notes": "Mock dataset indicates quality-control and compliance checks recommended."
+  }
+]
