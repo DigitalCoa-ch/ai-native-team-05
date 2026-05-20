@@ -1,36 +1,214 @@
-import React, { useState } from "react";
-import Head from "next/head";
-const C={p:"#1e3a5f",a:"#3b82f6",al:"#dbeafe",s:"#059669",w:"#d97706",d:"#dc2626",g:"#6b7280",lt:"#f9fafb",wh:"#ffffff"};
-function Bp({l,c}){return<span style={{display:"inline-block",padding:"4px 12px",borderRadius:"999px",fontSize:"0.75rem",fontWeight:600,backgroundColor:c+"22",color:c,border:"1px solid "+c+"44",margin:"4px"}}>{l}</span>}
-function Sec({id,t,bd,bc,ch,lt}){return<section id={id} style={{padding:"4rem 2rem",backgroundColor:lt?C.lt:C.wh,borderBottom:"1px solid #e5e7eb"}}><div style={{maxWidth:"900px",margin:"0 auto"}}><div style={{display:"flex",alignItems:"center",gap:"12px",marginBottom:"1.5rem",flexWrap:"wrap"}}><h2 style={{fontSize:"1.75rem",fontWeight:700,color:C.p,margin:0}}>{t}</h2>{bd&&<span style={{padding:"4px 10px",borderRadius:"6px",fontSize:"0.7rem",fontWeight:700,backgroundColor:bc+"18",color:bc,border:"1px solid "+bc+"33",textTransform:"uppercase",letterSpacing:"0.05em"}}>{bd}</span>}</div>{ch}</div></section>}
-function Ca({ch,h}){return<div style={{backgroundColor:h?C.al:C.wh,border:"1px solid "+(h?C.a+"40":"#e5e7eb"),borderRadius:"12px",padding:"1.5rem",boxShadow:"0 2px 8px rgba(0,0,0,0.05)"}}>{ch}</div>}
-function WStep({n,t,items,badge}){const bc=badge==="AI"?C.a:badge==="Human"?C.s:badge==="Decision"?C.w:C.g;return<div style={{flex:"1 1 200px",backgroundColor:C.wh,border:"1px solid #e5e7eb",borderRadius:"12px",padding:"1.25rem",display:"flex",flexDirection:"column",gap:"0.75rem"}}><div style={{display:"flex",alignItems:"center",gap:"8px"}}><span style={{width:28,height:28,borderRadius:"50%",backgroundColor:C.p,color:C.wh,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:"0.85rem",flexShrink:0}}>{n}</span><span style={{fontWeight:700,color:C.p,fontSize:"1rem"}}>{t}</span></div>{badge&&<span style={{display:"inline-block",padding:"2px 8px",borderRadius:"999px",fontSize:"0.65rem",fontWeight:700,backgroundColor:bc+"22",color:bc,border:"1px solid "+bc+"44",textTransform:"uppercase",letterSpacing:"0.05em",alignSelf:"flex-start"}}>{badge}</span>}<ul style={{margin:0,padding:"0 0 0 1.1rem",color:C.g,fontSize:"0.82rem",lineHeight:1.6}}>{items.map(i=><li key={i}>{i}</li>)}</ul></div>}
-function WArrow(){return<div style={{display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.5rem",color:C.g,flexShrink:0,padding:"0 0.25rem"}}>-&gt;</div>}
-function RiskCard({risk,mit}){return<div style={{backgroundColor:C.wh,border:"1px solid #e5e7eb",borderRadius:"10px",padding:"1rem",fontSize:"0.85rem"}}><div style={{fontWeight:700,color:C.d,marginBottom:"0.4rem"}}>WARNING {risk}</div><div style={{color:C.g,lineHeight:1.5}}>-&gt; {mit}</div></div>}
-const BADGES=[{l:"AI-first supplier screening",c:C.a},{l:"Human-in-the-loop",c:C.s},{l:"Mock data prototype",c:C.w},{l:"Small import businesses",c:C.p}];
-export default function Home(){
-const [form, setForm] = useState({supplierName:"",supplierCountry:"",providedTextDocs:"",paymentTerms:"",deliveryTerms:""});
-const [result, setResult] = useState(null);
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState("");
-const handleChange = e => {setForm(f=>({...f,[e.target.name]:e.target.value}));setError("");};
-const handleSubmit = async e => {
-e.preventDefault();
-if(!form.supplierName||!form.supplierCountry){setError("Supplier Name and Country are required.");return;}
-setLoading(true);setError("");
-try{const res = await fetch("/api/evaluate-supplier",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
-const data = await res.json();
-if(!res.ok){setError(data.error||"Evaluation failed.");setResult(null);}else{setResult(data);}}
-catch(err){setError("Network error. Please try again.");setResult(null);}
-finally{setLoading(false);}};
-const handleReset = () => {setForm({supplierName:"",supplierCountry:"",providedTextDocs:"",paymentTerms:"",deliveryTerms:""});setResult(null);setError("");};
-const credColor = result&&(result.evaluationSummary.credibilityScore>=70?C.s:result.evaluationSummary.credibilityScore>=40?C.w:C.d);
-<Sec id="problem" t="The Problem"><Ca><p style={{margin:0,lineHeight:1.7,color:C.g}}>Small import businesses may choose international suppliers based on <strong>price, speed, or online appearance</strong> while missing deeper risks such as:</p><div style={{display:"flex",flexWrap:"wrap",gap:"0.75rem",marginTop:"1.25rem"}}>{["Incomplete documentation","Unreliable delivery","Weak compliance","Risky payment terms","Country instability","Sanctions exposure","Poor supplier reputation"].map(i=><span key={i} style={{padding:"6px 14px",borderRadius:"6px",backgroundColor:C.d+"14",color:C.d,fontSize:"0.85rem",fontWeight:600,border:"1px solid "+C.d+"28"}}>{i}</span>)}</div></Ca></Sec>
-<Sec id="audience" t="Who Is This For?" lt><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:"1.25rem"}}>{[{e:"🏭",t:"Small Import Businesses",d:"Companies bringing goods from international suppliers without dedicated procurement or compliance teams."},{e:"⚖️",t:"Solo Entrepreneurs",d:"Individual buyers managing supplier relationships on their own and needing structured risk checks."},{e:"🌐",t:"Growing SMEs",d:"Small firms expanding into new international markets who need a consistent, scalable way to verify suppliers."}].map(c=><Ca key={c.t}><div style={{fontSize:"2rem",marginBottom:"0.75rem"}}>{c.e}</div><div style={{fontWeight:700,color:C.p,marginBottom:"0.5rem"}}>{c.t}</div><p style={{margin:0,color:C.g,fontSize:"0.9rem",lineHeight:1.6}}>{c.d}</p></Ca>)}</div></Sec>
-<Sec id="pain" t="The Pain Point"><Ca h><p style={{margin:0,fontSize:"1.05rem",lineHeight:1.7,color:C.g}}>Supplier verification today is <strong style={{color:C.d}}>manual and fragmented</strong>. Users may need to check documents, reviews, country risk, payment terms, and delivery reliability separately. This creates three core problems:</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:"1rem",marginTop:"1.5rem"}}>{[{i:"⏱",t:"Slow",d:"Manual research takes hours per supplier"},{i:"⚠️",t:"Inconsistent",d:"Results depend on individual knowledge and effort"},{i:"❌",t:"Risky",d:"Easy to miss red flags or important documents"}].map(x=><div key={x.t} style={{textAlign:"center",padding:"1.25rem",borderRadius:"8px",backgroundColor:C.wh,border:"1px solid #e5e7eb"}}><div style={{fontSize:"1.75rem",marginBottom:"0.5rem"}}>{x.i}</div><div style={{fontWeight:700,color:C.d,marginBottom:"0.4rem"}}>{x.t}</div><div style={{color:C.g,fontSize:"0.85rem"}}>{x.d}</div></div>)}</div></Ca></Sec>
-<Sec id="solution" t="Our AI-native Solution" bd="Core Feature" bc={C.a} lt><p style={{marginBottom:"1.5rem",color:C.g,lineHeight:1.7}}>An AI-supported supplier risk-check tool. The user submits supplier details, country, documents, and available supplier information. The system checks these against a structured checklist and mock data, then returns a clear decision-support output.</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:"1rem",marginBottom:"1.5rem"}}>{[{e:"📊",l:"Credibility Score",d:"Overall risk rating from AI analysis"},{e:"📋",l:"Completeness Score",d:"How much supplier information is available"},{e:"📄",l:"Missing Documents",d:"Flagged gaps in the supplier dossier"},{e:"🚩",l:"Red-flag Summary",d:"Key warning signs detected by AI"},{e:"🗺",l:"Country Risk Check",d:"Mock geopolitical risk data cross-reference"},{e:"✅",l:"Recommended Next Steps",d:"Clear human actionable guidance"}].map(x=><Ca key={x.l}><div style={{fontSize:"1.5rem",marginBottom:"0.5rem"}}>{x.e}</div><div style={{fontWeight:700,color:C.p,fontSize:"0.95rem",marginBottom:"0.4rem"}}>{x.l}</div><div style={{color:C.g,fontSize:"0.85rem"}}>{x.d}</div></Ca>)}</div><div style={{padding:"1rem 1.25rem",borderRadius:"8px",backgroundColor:C.s+"14",border:"1px solid "+C.s+"33",display:"flex",alignItems:"center",gap:"10px"}}><span style={{fontSize:"1.2rem"}}>👤</span><span style={{color:C.g,fontSize:"0.9rem"}}><strong style={{color:C.s}}>Human reviewer:</strong> The user makes the final supplier approval or rejection decision.</span></div></Sec>
-<Sec id="ai-does" t="What AI Does"><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:"1rem",marginBottom:"1.5rem"}}>{[{e:"🔍",t:"Classify supplier risk based on submitted information"},{e:"📋",t:"Identify missing or incomplete documents"},{e:"🚩",t:"Extract and summarize red flags from supplier data"},{e:"⭐",t:"Analyze supplier review signals for reliability cues"},{e:"🗺",t:"Cross-reference supplier country against mock geopolitical risk data"},{e:"🗂️",t:"Estimate overall information completeness and confidence"}].map(x=><div key={x.t} style={{display:"flex",gap:"0.75rem",alignItems:"flex-start"}}><span style={{fontSize:"1.3rem",marginTop:"2px",flexShrink:0}}>{x.e}</span><span style={{color:C.g,fontSize:"0.9rem",lineHeight:1.6}}>{x.t}</span></div>)}</div><div style={{padding:"1rem 1.25rem",borderRadius:"8px",backgroundColor:C.a+"14",border:"1px solid "+C.a+"33",display:"flex",alignItems:"center",gap:"10px"}}><span style={{fontSize:"1.2rem"}}>🚫</span><span style={{color:C.g,fontSize:"0.9rem"}}><strong style={{color:C.a}}>AI does not approve suppliers automatically.</strong> The user remains responsible for the final supplier decision.</span></div></Sec>
-<Sec id="why-ai" t="Why AI Is Essential" lt><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:"1.25rem"}}>{[{e:"⚡",t:"Speed",d:"AI turns hours of manual research into seconds of structured analysis."},{e:"🎯",t:"Consistency",d:"Every supplier gets the same structured check, reducing human bias."},{e:"🔎",t:"Scalability",d:"One person can screen many suppliers with the same quality of analysis."}].map(x=><Ca key={x.t}><div style={{fontSize:"1.5rem",marginBottom:"0.75rem"}}>{x.e}</div><div style={{fontWeight:700,color:C.p,marginBottom:"0.5rem"}}>{x.t}</div><p style={{margin:0,color:C.g,fontSize:"0.9rem",lineHeight:1.6}}>{x.d}</p></Ca>)}</div></Sec>
-<Sec id="oxygen" t="Oxygen Test"><Ca><p style={{marginBottom:"1rem",color:C.g,lineHeight:1.7}}>The Oxygen Test asks: if AI disappeared tomorrow, would the business fully collapse, or would it survive?</p><ORow l="If AI vanished:" v="The checklist and form could still exist. Users could still follow a manual process." ps /><ORow l="What weakens:" v="The workflow becomes slower, less consistent, and less useful. Users lose automated classification, red-flag extraction, document gap analysis, and recommendation support." ng /><ORow l="Conclusion:" v="This is an AI-first concept. The basic workflow survives without AI, but the main value comes from AI-supported analysis and recommendations." /></Ca></Sec>
-<Sec id="perch" t="Evidence & Risk (PERCH)"><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:"1rem"}}><PC t="Perspective" e="👁" ch="The project is built from the perspective of small import businesses that lack resources for supplier risk analysis." /><PC t="Evidence" e="📂" ch="International supplier decisions involve documentation, payment, delivery, reputation, compliance, and country-risk concerns." /><PC t="Reasoning Risk" e="⚠️" ch="We should not assume all small businesses lack expertise. Some may already have trusted suppliers or strong industry knowledge." /><PC t="Context" e="🌍" ch="International trade risk can change quickly due to politics, sanctions, logistics, or economic instability." /><PC t="Hypotheses" e="🧪" ch="The prototype uses mock data. Real deployment would require live sanctions feeds, supplier databases, logistics APIs, and compliance sources." /><PC t="Weaknesses" e="⚡" ch="The AI may appear more authoritative than it is. The workflow depends heavily on user-provided information quality." /></div></Sec>
-<section id="evaluate" style={{padding:"4rem 2rem",backgroundColor:C.lt,borderBottom:"1px solid #e5e7eb"}}><div style={{maxWidth:"900px",margin:"0 auto"}}><div style={{display:"flex",alignItems:"center",gap:"12px",marginBottom:"1.5rem",flexWrap:"wrap"}}><h2 style={{fontSize:"1.75rem",fontWeight:700,color:C.p,margin:0}}>Try the Supplier Evaluator</h2><span style={{padding:"4px 10px",borderRadius:"6px",fontSize:"0.7rem",fontWeight:700,backgroundColor:C.a+"18",color:C.a,border:"1px solid "+C.a+"33",textTransform:"uppercase",letterSpacing:"0.05em"}}>Prototype</span></div><p style={{color:C.g,lineHeight:1.7,marginBottom:"2rem"}}>Enter the supplier information below. The AI will analyze it against our mock reference data and return a structured risk evaluation. <strong style={{color:C.d}}>No automated decision is made - the human reviewer decides.</strong></p><div style={{backgroundColor:C.wh,border:"1px solid #e5e7eb",borderRadius:"12px",padding:"2rem",boxShadow:"0 2px 8px rgba(0,0,0,0.05)",marginBottom:"2rem"}}><form onSubmit={handleSubmit}><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:"1.25rem",marginBottom:"1.5rem"}}<div><label style={{display:"block",fontWeight:600,color:C.p,marginBottom:"0.5rem",fontSize:"0.9rem"}}>Supplier Name *</label><input name="supplierName" value={form.supplierName} onChange={handleChange} placeholder="e.g. ABC Textiles Ltd" style={{width:"100%",padding:"0.65rem 0.9rem",borderRadius:"8px",border:"1px solid #e5e7eb",fontSize:"0.9rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box",backgroundColor:C.wh}} /></div><div><label style={{display:"block",fontWeight:600,color:C.p,marginBottom:"0.5rem",fontSize:"0.9rem"}}>Supplier Country *</label><input name="supplierCountry" value={form.supplierCountry} onChange={handleChange} placeholder="e.g. Pakistan, China, Germany" style={{width:"100%",padding:"0.65rem 0.9rem",borderRadius:"8px",border:"1px solid #e5e7eb",fontSize:"0.9rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box",backgroundColor:C.wh}} /></div><div style={{gridColumn:"1/-1"}}><label style={{display:"block",fontWeight:600,color:C.p,marginBottom:"0.5rem",fontSize:"0.9rem"}}>Provided Documents / Text <span style={{fontWeight:400,color:C.g}}>(comma-separated list)</span></label><textarea name="providedTextDocs" value={form.providedTextDocs} onChange={handleChange} placeholder="e.g. Business Registration, Product Catalogue" rows={3} style={{width:"100%",padding:"0.65rem 0.9rem",borderRadius:"8px",border:"1px solid #e5e7eb",fontSize:"0.9rem",fontFamily:"inherit",outline:"none",resize:"vertical",boxSizing:"border-box",backgroundColor:C.wh}} /></div><div><label style={{display:"block",fontWeight:600,color:C.p,marginBottom:"0.5rem",fontSize:"0.9rem"}}>Payment Terms</label><input name="paymentTerms" value={form.paymentTerms} onChange={handleChange} placeholder="e.g. 30% upfront, 70% on delivery" style={{width:"100%",padding:"0.65rem 0.9rem",borderRadius:"8px",border:"1px solid #e5e7eb",fontSize:"0.9rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box",backgroundColor:C.wh}} /></div><div><label style={{display:"block",fontWeight:600,color:C.p,marginBottom:"0.5rem",fontSize:"0.9rem"}}>Delivery Terms</label><input name="deliveryTerms" value={form.deliveryTerms} onChange={handleChange} placeholder="e.g. FOB Shanghai, CIF Hamburg" style={{width:"100%",padding:"0.65rem 0.9rem",borderRadius:"8px",border:"1px solid #e5e7eb",fontSize:"0.9rem",fontFamily:"inherit",outline:"none",boxSizing:"border-box",backgroundColor:C.wh}} /></div></div>{error&&<div style={{padding:"0.75rem 1rem",borderRadius:"8px",backgroundColor:C.d+"14",color:C.d,border:"1px solid "+C.d+"33",marginBottom:"1rem",fontSize:"0.9rem"}}>{error}</div>}<div style={{display:"flex",gap:"0.75rem"}}<button type="submit" disabled={loading} style={{padding:"0.75rem 1.5rem",borderRadius:"8px",backgroundColor:loading?C.g:C.a,color:C.wh,fontWeight:700,fontSize:"0.95rem",border:"none",cursor:loading?"not-allowed":"pointer",fontFamily:"inherit"}}>{loading?"Analyzing...":"Evaluate Supplier"}</button><button type="button" onClick={handleReset} style={{padding:"0.75rem 1.5rem",borderRadius:"8px",backgroundColor:C.wh,color:C.g,fontWeight:600,fontSize:"0.95rem",border:"1px solid #e5e7eb",cursor:"pointer",fontFamily:"inherit"}}>Reset</button></div></form></div>{result&&<div><div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"1.5rem"}}<h3 style={{fontSize:"1.25rem",fontWeight:700,color:C.p,margin:0}}>Evaluation Result</h3><span style={{padding:"4px 10px",borderRadius:"6px",fontSize:"0.7rem",fontWeight:700,backgroundColor:C.s+"18",color:C.s,border:"1px solid "+C.s+"33",textTransform:"uppercase"}}>Pending Human Action</span></div><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:"1rem",marginBottom:"1.5rem"}}<div style={{textAlign:"center",padding:"1.25rem",borderRadius:"10px",backgroundColor:C.wh,border:"1px solid #e5e7eb"}}><div style={{fontSize:"0.65rem",color:C.g,marginBottom:"0.3rem",textTransform:"uppercase",letterSpacing:"0.06em"}}>Credibility Score</div><div style={{fontSize:"2.5rem",fontWeight:800,color:credColor}}>{result.evaluationSummary.credibilityScore}</div><div style={{fontSize:"0.75rem",color:C.g}}>/100 - {result.evaluationSummary.countryRiskStatus}</div></div><div style={{textAlign:"center",padding:"1.25rem",borderRadius:"10px",backgroundColor:C.wh,border:"1px solid #e5e7eb"}}><div style={{fontSize:"0.65rem",color:C.g,marginBottom:"0.3rem",textTransform:"uppercase",letterSpacing:"0.06em"}}>Completeness</div><div style={{fontSize:"2.5rem",fontWeight:800,color:C.a}}>{result.evaluationSummary.completenessScore}</div><div style={{fontSize:"0.75rem",color:C.g}}>percent of dossier</div></div></div><div style={{marginBottom:"1.25rem"}}><div style={{fontWeight:700,color:C.p,marginBottom:"0.75rem",fontSize:"1rem"}}>Document Checklist</div><div style={{display:"flex",flexWrap:"wrap",gap:"0.5rem"}}>["Business Registration","Product Catalogue","Compliance Certificate","Delivery Agreement","Payment Terms Confirmation"].map(doc=><span key={doc} style={{padding:"5px 12px",borderRadius:"6px",fontSize:"0.8rem",fontWeight:600,backgroundColor:result.gapAnalysis.presentDocuments.includes(doc)?C.s+"14":C.d+"14",color:result.gapAnalysis.presentDocuments.includes(doc)?C.s:C.d,border:"1px solid "+(result.gapAnalysis.presentDocuments.includes(doc)?C.s+"33":C.d+"33")}}>{doc}</span>)}</div></div>{result.gapAnalysis.missingDocuments.length>0&&<div style={{marginBottom:"1.25rem"}}><div style={{fontWeight:700,color:C.d,marginBottom:"0.5rem",fontSize:"0.9rem"}}>Missing Documents</div>{result.gapAnalysis.missingDocuments.map(d=><div key={d} style={{padding:"0.5rem 0.75rem",borderRadius:"6px",backgroundColor:C.d+"14",color:C.d,fontSize:"0.85rem",marginBottom:"0.4rem",borderLeft:"3px solid "+C.d}}>{d}</div>)}</div>}<div style={{marginBottom:"1.25rem"}}><div style={{fontWeight:700,color:C.p,marginBottom:"0.75rem",fontSize:"1rem"}}>Red Flags</div>{result.redFlags.length===0?<div style={{padding:"0.75rem 1rem",borderRadius:"8px",backgroundColor:C.s+"14",color:C.s,fontSize:"0.9rem"}}>No significant red flags detected.</div>:result.redFlags.map((rf,i)=><RiskCard key={i} risk={rf.flag} mit={rf.mitigation}/>)}</div><div style={{marginBottom:"1.5rem"}}><div style={{fontWeight:700,color:C.p,marginBottom:"0.75rem",fontSize:"1rem"}}>Country Risk Check</div><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:"0.75rem"}}><div style={{padding:"1rem",borderRadius:"8px",backgroundColor:C.wh,border:"1px solid #e5e7eb",textAlign:"center"}}><div style={{fontSize:"0.65rem",color:C.g,marginBottom:"0.3rem",textTransform:"uppercase",letterSpacing:"0.05em"}}>Overall Country Risk</div><div style={{fontSize:"1.1rem",fontWeight:700,color:result.countryRiskCheck.countryRiskLevel==="Low"?C.s:result.countryRiskCheck.countryRiskLevel==="Medium"?C.w:C.d}}>{result.countryRiskCheck.countryRiskLevel}</div></div><div style={{padding:"1rem",borderRadius:"8px",backgroundColor:C.wh,border:"1px solid #e5e7eb",textAlign:"center"}}><div style={{fontSize:"0.65rem",color:C.g,marginBottom:"0.3rem",textTransform:"uppercase",letterSpacing:"0.05em"}}>Sanctions List</div><div style={{fontSize:"1.1rem",fontWeight:700,color:result.countryRiskCheck.onSanctionsList?C.d:C.s}}>{result.countryRiskCheck.onSanctionsList?"Yes":"No"}</div></div><div style={{padding:"1rem",borderRadius:"8px",backgroundColor:C.wh,border:"1px solid #e5e7eb",textAlign:"center"}}><div style={{fontSize:"0.65rem",color:C.g,marginBottom:"0.3rem",textTransform:"uppercase",letterSpacing:"0.05em"}}>Travel Advisory</div><div style={{fontSize:"1.1rem",fontWeight:700,color:result.countryRiskCheck.travelAdvisoryLevel==="None"?C.s:result.countryRiskCheck.travelAdvisoryLevel==="Minor"?C.w:C.d}}>{result.countryRiskCheck.travelAdvisoryLevel||"None"}</div></div></div></div><div style={{marginBottom:"1.5rem"}}><div style={{fontWeight:700,color:C.p,marginBottom:"0.75rem",fontSize:"1rem"}}>Recommended Next Steps</div>{result.recommendedNextSteps.map((step,i)=><div key={i} style={{display:"flex",gap:"0.75rem",marginBottom:"0.75rem",padding:"0.75rem 1rem",borderRadius:"8px",backgroundColor:C.lt,border:"1px solid #e5e7eb"}}><span style={{fontWeight:800,color:C.a,fontSize:"0.9rem",flexShrink:0}}>{i+1}.</span><span style={{color:C.g,fontSize:"0.9rem",lineHeight:1.5}}>{step}</span></div>)}</div><div style={{padding:"1rem 1.25rem",borderRadius:"8px",backgroundColor:C.w+"18",border:"1px solid "+C.w+"33",display:"flex",alignItems:"center",gap:"10px"}}><span style={{fontSize:"1.2rem"}}>👤</span><span style={{color:C.g,fontSize:"0.9rem"}}><strong style={{color:C.w}}>Human Decision Required:</strong> Based on this evaluation, you decide whether to proceed with this supplier.</span></div></div>}<section id="workflow" style={{padding:"4rem 2rem",backgroundColor:C.wh,borderBottom:"1px solid #e5e7eb"}}><div style={{maxWidth:"900px",margin:"0 auto"}}><h2 style={{fontSize:"1.75rem",fontWeight:700,color:C.p,margin:"0 0 2rem"}}>How the Workflow Works</h2><div style={{display:"flex",flexWrap:"wrap",alignItems:"stretch",gap:"0.75rem"}}<WStep n="1" t="Submit Supplier Info" items={["Enter supplier name and country","List available documents","Add payment and delivery terms"]} badge="AI" /><WArrow/><WStep n="2" t="AI Analysis" items={["Credibility scoring","Document gap detection","Red flag identification","Country risk check"]} badge="AI" /><WArrow/><WStep n="3" t="Human Review" items={["Review AI findings","Check red flags manually","Request missing documents"]} badge="Human" /><WArrow/><WStep n="4" t="Decision" items={["Approve, reject, or request more info","Document decision for records","Proceed with procurement"]} badge="Decision" /></div></div></section><footer style={{backgroundColor:C.p,color:C.wh,padding:"3rem 2rem",textAlign:"center"}}><div style={{maxWidth:"700px",margin:"0 auto"}}><p style={{fontSize:"1rem",fontWeight:600,margin:"0 0 0.5rem"}}>Human-in-the-Loop Supplier Risk Screening</p><p style={{margin:"0 0 1rem",opacity:0.75,fontSize:"0.9rem"}}>An AI-native approach for small import businesses.</p><div style={{display:"flex",justifyContent:"center",flexWrap:"wrap",gap:"0.5rem"}}><Bp l="AI-supported" c={C.a}/><Bp l="Human Decides" c={C.s}/><Bp l="Mock Prototype" c={C.w}/></div><p style={{margin:"1.5rem 0 0",opacity:0.6,fontSize:"0.8rem"}}>Built as a Day 1 prototype. Not for production use.</p></div></footer></div></>;}}
+import React, { useState } from 'react';
+import Head from 'next/head';
+
+const C = {p:'#1e3a5f',a:'#3b82f6',al:'#dbeafe',s:'#059669',w:'#d97706',d:'#dc2626',g:'#6b7280',lt:'#f9fafb',wh:'#ffffff'};
+
+function Section({title, children, light}: {title:string; children:React.ReactNode; light?:boolean}) {
+  return <section style={{padding:'4rem 2rem', backgroundColor:light ? C.lt : C.wh, borderBottom:'1px solid #e5e7eb'}}>
+    <div style={{maxWidth:'900px', margin:'0 auto'}}>
+      <h2 style={{fontSize:'1.75rem', fontWeight:700, color:C.p, margin:'0 0 1.5rem 0'}}>{title}</h2>
+      {children}
+    </div>
+  </section>;
+}
+
+function Card({children, highlight}: {children:React.ReactNode; highlight?:boolean}) {
+  return <div style={{
+    backgroundColor:highlight ? C.al : C.wh,
+    border:'1px solid '+(highlight ? C.a+'40' : '#e5e7eb'),
+    borderRadius:'12px', padding:'1.5rem', boxShadow:'0 2px 8px rgba(0,0,0,0.05)'
+  }}>{children}</div>;
+}
+
+function ScoreBox({label, value, sub, color}: {label:string; value:number|string; sub:string; color:string}) {
+  return <div style={{textAlign:'center', padding:'1.25rem', borderRadius:'10px', backgroundColor:C.wh, border:'1px solid #e5e7eb'}}>
+    <div style={{fontSize:'0.65rem', color:C.g, marginBottom:'0.3rem', textTransform:'uppercase', letterSpacing:'0.06em'}}>{label}</div>
+    <div style={{fontSize:'2.5rem', fontWeight:800, color}}>{value}</div>
+    <div style={{fontSize:'0.75rem', color:C.g}}>{sub}</div>
+  </div>;
+}
+
+export default function Home() {
+  const [form, setForm] = useState({supplierName:'', supplierCountry:'', providedTextDocs:'', paymentTerms:'', deliveryTerms:''});
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>) => {
+    setForm((f: any) => ({...f, [e.target.name]: e.target.value}));
+    setError('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.supplierName || !form.supplierCountry) { setError('Supplier Name and Country are required.'); return; }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/evaluate-supplier', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(form)});
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Evaluation failed.'); setResult(null); }
+      else { setResult(data); }
+    } catch { setError('Network error. Please try again.'); setResult(null); }
+    finally { setLoading(false); }
+  };
+
+  const handleReset = () => {
+    setForm({supplierName:'', supplierCountry:'', providedTextDocs:'', paymentTerms:'', deliveryTerms:''});
+    setResult(null);
+    setError('');
+  };
+
+  const credColor = result
+    ? (result.evaluationSummary.credibilityScore >= 70 ? C.s : result.evaluationSummary.credibilityScore >= 40 ? C.w : C.d)
+    : C.g;
+
+  return (
+    <div style={{fontFamily:'system-ui, sans-serif', color:C.g, lineHeight:1.6}}>
+      <Head><title>Supplier AI Risk Evaluator</title></Head>
+
+      <header style={{backgroundColor:C.p, color:C.wh, padding:'2rem'}}>
+        <div style={{maxWidth:'900px', margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap' as const, gap:'1rem'}}>
+          <div style={{display:'flex', alignItems:'center', gap:'0.75rem'}}>
+            <span style={{fontSize:'1.75rem'}}>🔍</span>
+            <div>
+              <div style={{fontWeight:700, fontSize:'1.2rem'}}>Supplier AI Risk Evaluator</div>
+              <div style={{fontSize:'0.8rem', opacity:0.8}}>AI-supported supplier screening with human oversight</div>
+            </div>
+          </div>
+          <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+            {['AI Screening', 'Human-in-the-Loop', 'Mock Data'].map(b => (
+              <span key={b} style={{padding:'4px 12px', borderRadius:'999px', fontSize:'0.75rem', fontWeight:600, backgroundColor:'rgba(255,255,255,0.15)', color:C.wh}}>{b}</span>
+            ))}
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <Section title="Evaluate a Supplier">
+          <Card>
+            <form onSubmit={handleSubmit}>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))', gap:'1rem', marginBottom:'1rem'}}>
+                <div>
+                  <label style={{display:'block', fontSize:'0.8rem', fontWeight:600, color:C.p, marginBottom:'4px'}}>Supplier Name *</label>
+                  <input name="supplierName" value={form.supplierName} onChange={handleChange} placeholder="e.g. Acme Corp" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={{display:'block', fontSize:'0.8rem', fontWeight:600, color:C.p, marginBottom:'4px'}}>Country *</label>
+                  <select name="supplierCountry" value={form.supplierCountry} onChange={handleChange} style={{...inputStyle, color: form.supplierCountry ? C.g : '#9ca3af'}}>
+                    <option value="">Select country</option>
+                    <option value="China">China</option><option value="India">India</option>
+                    <option value="Germany">Germany</option><option value="Vietnam">Vietnam</option>
+                    <option value="Brazil">Brazil</option><option value="Nigeria">Nigeria</option>
+                    <option value="Russia">Russia</option><option value="United States">United States</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{marginBottom:'1rem'}}>
+                <label style={{display:'block', fontSize:'0.8rem', fontWeight:600, color:C.p, marginBottom:'4px'}}>Documents / Notes Available</label>
+                <textarea name="providedTextDocs" value={form.providedTextDocs} onChange={handleChange} rows={4}
+                  placeholder="Paste available documents, notes, or any text about the supplier..."
+                  style={{...inputStyle, resize:'vertical'}} />
+              </div>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))', gap:'1rem', marginBottom:'1rem'}}>
+                <div>
+                  <label style={{display:'block', fontSize:'0.8rem', fontWeight:600, color:C.p, marginBottom:'4px'}}>Payment Terms</label>
+                  <input name="paymentTerms" value={form.paymentTerms} onChange={handleChange} placeholder="e.g. Net 30, Wire transfer" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={{display:'block', fontSize:'0.8rem', fontWeight:600, color:C.p, marginBottom:'4px'}}>Delivery Terms</label>
+                  <input name="deliveryTerms" value={form.deliveryTerms} onChange={handleChange} placeholder="e.g. FOB, CIF, Door-to-door" style={inputStyle} />
+                </div>
+              </div>
+              {error && <div style={{padding:'0.75rem 1rem', borderRadius:'8px', backgroundColor:C.d+'14', color:C.d, border:'1px solid '+C.d+'33', marginBottom:'1rem', fontSize:'0.9rem'}}>{error}</div>}
+              <div style={{display:'flex', gap:'0.75rem', flexWrap:'wrap'}}>
+                <button type="submit" disabled={loading} style={{
+                  padding:'0.75rem 1.5rem', borderRadius:'8px', backgroundColor:loading ? C.g : C.a,
+                  color:C.wh, fontWeight:700, fontSize:'0.95rem', border:'none', cursor:loading ? 'not-allowed' : 'pointer'
+                }}>{loading ? 'Analyzing...' : 'Run AI Screening'}</button>
+                <button type="button" onClick={handleReset} style={{
+                  padding:'0.75rem 1.5rem', borderRadius:'8px', backgroundColor:C.wh, color:C.g,
+                  fontWeight:600, fontSize:'0.95rem', border:'1px solid #e5e7eb', cursor:'pointer'
+                }}>Reset</button>
+              </div>
+            </form>
+          </Card>
+        </Section>
+
+        {result && <Section title="Evaluation Results" light>
+          <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'1rem', marginBottom:'1.5rem'}}>
+            <ScoreBox label="Credibility Score" value={result.evaluationSummary.credibilityScore} sub={`/100 — ${result.evaluationSummary.countryRiskStatus}`} color={credColor} />
+            <ScoreBox label="Completeness" value={result.evaluationSummary.completenessScore} sub="percent of dossier" color={C.a} />
+          </div>
+
+          <div style={{marginBottom:'1.25rem'}}>
+            <div style={{fontWeight:700, color:C.p, marginBottom:'0.75rem'}}>Document Checklist</div>
+            <div style={{display:'flex', flexWrap:'wrap', gap:'0.5rem'}}>
+              {['Business Registration','Product Catalogue','Compliance Certificate','Delivery Agreement','Payment Terms Confirmation'].map(doc => (
+                <span key={doc} style={{
+                  padding:'5px 12px', borderRadius:'6px', fontSize:'0.8rem', fontWeight:600,
+                  backgroundColor: result.gapAnalysis.presentDocuments.includes(doc) ? C.s+'14' : C.d+'14',
+                  color: result.gapAnalysis.presentDocuments.includes(doc) ? C.s : C.d,
+                  border:'1px solid '+(result.gapAnalysis.presentDocuments.includes(doc) ? C.s+'33' : C.d+'33')
+                }}>{result.gapAnalysis.presentDocuments.includes(doc) ? '✓' : '✗'} {doc}</span>
+              ))}
+            </div>
+          </div>
+
+          {result.gapAnalysis.missingDocuments.length > 0 && <div style={{marginBottom:'1.25rem'}}>
+            <div style={{fontWeight:700, color:C.d, marginBottom:'0.5rem'}}>Missing Documents</div>
+            {result.gapAnalysis.missingDocuments.map((d: string) => (
+              <div key={d} style={{padding:'0.5rem 0.75rem', borderRadius:'6px', backgroundColor:C.d+'14', color:C.d, fontSize:'0.85rem', marginBottom:'0.4rem', borderLeft:'3px solid '+C.d}}>{d}</div>
+            ))}
+          </div>}
+
+          {result.redFlags.length > 0 ? <div style={{marginBottom:'1.25rem'}}>
+            <div style={{fontWeight:700, color:C.d, marginBottom:'0.75rem'}}>Red Flags</div>
+            {result.redFlags.map((rf: any, i: number) => (
+              <div key={i} style={{backgroundColor:C.wh, border:'1px solid #e5e7eb', borderRadius:'10px', padding:'1rem', fontSize:'0.85rem', marginBottom:'0.5rem'}}>
+                <div style={{fontWeight:700, color:C.d, marginBottom:'0.4rem'}}>⚠ {rf.flag}</div>
+                <div style={{color:C.g, lineHeight:1.5}}>→ {rf.mitigation}</div>
+              </div>
+            ))}
+          </div> : <div style={{padding:'0.75rem 1rem', borderRadius:'8px', backgroundColor:C.s+'14', color:C.s, marginBottom:'1.25rem'}}>✓ No significant red flags detected.</div>}
+
+          <div style={{padding:'1rem 1.25rem', borderRadius:'8px', backgroundColor:C.a+'14', border:'1px solid '+C.a+'33', marginBottom:'1.25rem'}}>
+            <div style={{fontWeight:700, color:C.p, marginBottom:'0.5rem'}}>Recommended Next Steps</div>
+            <ul style={{margin:0, padding:'0 0 0 1.2rem', color:C.g}}>{result.recommendedNextSteps.map((s: string, i: number) => <li key={i}>{s}</li>)}</ul>
+          </div>
+
+          <div style={{display:'flex', gap:'0.75rem', flexWrap:'wrap'}}>
+            <button style={{padding:'0.75rem 1.5rem', borderRadius:'8px', backgroundColor:C.s, color:C.wh, fontWeight:700, border:'none', cursor:'pointer'}}>✓ Approve Supplier</button>
+            <button style={{padding:'0.75rem 1.5rem', borderRadius:'8px', backgroundColor:C.wh, color:C.d, fontWeight:700, border:'1px solid '+C.d, cursor:'pointer'}}>✗ Reject Supplier</button>
+            <button style={{padding:'0.75rem 1.5rem', borderRadius:'8px', backgroundColor:C.wh, color:C.w, fontWeight:700, border:'1px solid '+C.w, cursor:'pointer'}}>⚠ Request More Info</button>
+          </div>
+        </Section>}
+
+        <Section title="How It Works" light>
+          <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))', gap:'1rem'}}>
+            {[
+              {n:'1', t:'Submit', d:'Enter supplier details, country, documents, and available information.'},
+              {n:'2', t:'AI Analyzes', d:'Checks documents, country risk, reviews, and payment terms against structured rules.'},
+              {n:'3', t:'Human Decides', d:'You receive a clear report with scores, flags, and recommended next steps.'},
+            ].map(step => (
+              <Card key={step.n}>
+                <div style={{width:32, height:32, borderRadius:'50%', backgroundColor:C.p, color:C.wh, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, marginBottom:'0.75rem'}}>{step.n}</div>
+                <div style={{fontWeight:700, color:C.p, marginBottom:'0.4rem'}}>{step.t}</div>
+                <p style={{margin:0, fontSize:'0.85rem', color:C.g, lineHeight:1.5}}>{step.d}</p>
+              </Card>
+            ))}
+          </div>
+        </Section>
+      </main>
+
+      <footer style={{backgroundColor:C.p, color:C.wh, padding:'2rem', textAlign:'center'}}>
+        <div style={{fontSize:'0.85rem', opacity:0.8}}>Supplier AI Risk Evaluator</div>
+        <div style={{fontSize:'0.75rem', opacity:0.6, marginTop:'0.5rem'}}>AI does not make final decisions. Human reviewer approves or rejects all suppliers.</div>
+      </footer>
+    </div>
+  );
+}
+
+const inputStyle = {
+  width:'100%', padding:'0.625rem 0.875rem', borderRadius:'8px', border:'1px solid #e5e7eb',
+  fontSize:'0.9rem', fontFamily:'inherit', backgroundColor:C.wh, color:C.g, outline:'none', boxSizing:'border-box' as const
+};

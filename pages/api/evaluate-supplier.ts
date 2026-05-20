@@ -6,7 +6,6 @@ function readJSON(filename: string) {
   return JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', filename), 'utf8'));
 }
 
-// Load mock data files
 const GEO_DATA = readJSON('geopolitical_risk_file.json');
 const REVIEWS_DATA = readJSON('reviews_file.json');
 const RULES_DATA = readJSON('supplier_risk_rules.json');
@@ -19,31 +18,11 @@ function getCountryRisk(country: string): string {
 
 function getCountryNotes(country: string): string {
   const entry = GEO_DATA.find((g: any) => g.country === country);
-  return entry ? entry.notes : '';
+  return entry?.notes ?? '';
 }
 
 function getReviewEntry(supplierName: string) {
-  return REVIEWS_DATA.find((r: any) => r.supplier.toLowerCase() === supplierName.toLowerCase());
-}
-
-function parseProvidedDocs(text: string): string[] {
-  if (!text) return [];
-  return text.split(/[,\n]+/).map(d => d.trim()).filter(d => d.length > 0);
-}
-
-function normalizeDoc(doc: string): string {
-  return doc.trim().toLowerCase();
-}
-
-function runGapAnalysis(providedText: string) {
-  const provided = parseProvidedDocs(providedText).map(normalizeDoc);
-  const present: string[] = [];
-  const missing: string[] = [];
-  for (const required of REQUIRED_DOCS) {
-    const found = provided.some(p => p.includes(required.toLowerCase()) || required.toLowerCase().includes(p));
-    if (found) present.push(required); else missing.push(required);
-  }
-  return { presentDocuments: present, missingDocuments: missing };
+  return REVIEWS_DATA.find((r: any) => r.supplierName.toLowerCase() === supplierName.toLowerCase()) ?? null;
 }
 
 function calcCompletenessScore(presentCount: number): number {
@@ -51,58 +30,64 @@ function calcCompletenessScore(presentCount: number): number {
 }
 
 function calcCredibilityScore(completenessScore: number, countryRisk: string, reviewRisk: string | null, hasTerms: boolean): number {
-  const rules = RULES_DATA;
-  let cred = rules.baseCredibility;
-  const missingCount = REQUIRED_DOCS.length - Math.round(completenessScore / 100 * REQUIRED_DOCS.length);
-  if (missingCount > 0) cred -= missingCount * rules.penalties.missingDocument;
-  if (countryRisk.includes('Medium')) cred -= rules.penalties.mediumCountryRisk;
-  if (countryRisk.includes('High')) cred -= rules.penalties.highCountryRisk;
-  if (reviewRisk === 'Medium') cred -= rules.penalties.mediumReviewRisk;
-  if (reviewRisk === 'High') cred -= rules.penalties.highReviewRisk;
-  if (!hasTerms) cred -= rules.penalties.unclearPaymentTerms;
+  const rules = RULES_DATA.penaltyRules;
+  let cred = RULES_DATA.baseCredibilityScore;
+  if (countryRisk === 'High Risk') cred -= rules.highGeoPenalty;
+  else if (countryRisk === 'Medium Risk') cred -= rules.mediumGeoPenalty;
+  if (!hasTerms) cred -= rules.unclearPaymentTerms;
+  if (reviewRisk === 'High') cred -= rules.reviewPenaltyHigh;
+  else if (reviewRisk === 'Medium') cred -= rules.reviewPenaltyMedium;
   return Math.max(0, Math.min(100, cred));
 }
 
-function buildRecommendedNextSteps(missingDocs: string[], countryRisk: string): string[] {
+function buildRecommendedNextSteps(missingDocs: string[], countryRiskStatus: string): string[] {
   const steps: string[] = [];
   if (missingDocs.length > 0) steps.push(`Request missing documents: ${missingDocs.join(', ')}.`);
-  if (countryRisk.includes('High')) steps.push('Enhanced due diligence required — supplier is in a high-risk country.');
-  else if (countryRisk.includes('Medium')) steps.push('Verify delivery track record independently before committing.');
-  steps.push('Obtain a sample shipment before committing to a bulk order.');
-  if (steps.length === 1) steps.push('Supplier dossier appears complete — proceed with standard review.');
+  if (countryRiskStatus === 'High Risk') steps.push('Escalate to compliance team before any engagement.');
+  else if (countryRiskStatus === 'Medium Risk') steps.push('Conduct enhanced due diligence.');
+  if (steps.length === 0) steps.push('Proceed with standard onboarding.');
   return steps;
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-  const { supplierName, supplierCountry, providedTextDocs, paymentTerms, deliveryTerms } = req.body as {
-    supplierName?: string; supplierCountry?: string; providedTextDocs?: string; paymentTerms?: string; deliveryTerms?: string;
-  };
+  const { supplierName, supplierCountry, providedTextDocs, paymentTerms, deliveryTerms } = req.body;
 
   if (!supplierName || !supplierCountry) {
     return res.status(400).json({ error: 'supplierName and supplierCountry are required.' });
   }
 
-  const gap = runGapAnalysis(providedTextDocs ?? '');
+  const provided = (providedTextDocs || '').toLowerCase();
+  const presentDocuments = REQUIRED_DOCS.filter((doc: string) =>
+    provided.includes(doc.toLowerCase())
+  );
+  const missingDocuments = REQUIRED_DOCS.filter((doc: string) =>
+    !provided.includes(doc.toLowerCase())
+  );
+
   const countryRiskStatus = getCountryRisk(supplierCountry);
   const countryNotes = getCountryNotes(supplierCountry);
   const reviewEntry = getReviewEntry(supplierName);
-  const completenessScore = calcCompletenessScore(gap.presentDocuments.length);
-  const hasTerms = !!(paymentTerms?.length > 5 || deliveryTerms?.length > 5);
+  const completenessScore = calcCompletenessScore(presentDocuments.length);
+  const hasTerms = ((paymentTerms?.length ?? 0) > 5 || (deliveryTerms?.length ?? 0) > 5);
   const credibilityScore = calcCredibilityScore(completenessScore, countryRiskStatus, reviewEntry?.reviewRisk ?? null, hasTerms);
-  const recommendedNextSteps = buildRecommendedNextSteps(gap.missingDocuments, countryRiskStatus);
+  const recommendedNextSteps = buildRecommendedNextSteps(missingDocuments, countryRiskStatus);
 
   const response = {
     evaluationSummary: { supplierName, credibilityScore, completenessScore, countryRiskStatus },
-    gapAnalysis: { presentDocuments: gap.presentDocuments, missingDocuments: gap.missingDocuments },
+    gapAnalysis: { presentDocuments, missingDocuments },
     countryRiskCheck: {
       countryRiskLevel: countryRiskStatus,
-      onSanctionsList: countryRiskStatus.includes('High'),
+      onSanctionsList: countryRiskStatus === 'High Risk',
       travelAdvisoryLevel: countryRiskStatus === 'Low Risk' ? 'None' : 'Minor',
       notes: countryNotes,
     },
-    redFlags: reviewEntry ? reviewEntry.signals.map((s: string) => ({ flag: s, mitigation: 'Investigate this signal before proceeding.' })) : [],
+    redFlags: reviewEntry
+      ? reviewEntry.signals.map((s: string) => ({ flag: s, mitigation: 'Investigate this signal before proceeding.' }))
+      : [],
     reviewSignals: reviewEntry?.signals ?? [],
     recommendedNextSteps,
     humanControlStatus: 'Pending Human Action',
